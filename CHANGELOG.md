@@ -17,6 +17,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and 
 - `cs doctor` checks that OpenCV's face cascade loads.
 - Scoring adds a **standalone** signal (0-10). Starting after a pause of more than 0.8s (a topic shift) earns points, and opening on a dangling "he", "she", "they", "it", "that", or "this one" costs points. Emotion (20 to 15) and length (15 to 10) were rebalanced to make room, so totals stay 0-100. Scores from 0.1.0 reports aren't directly comparable.
 - `cs rerender` remembers the layout you last re-rendered a clip with.
+- `blur` and `zoom` render about 3x faster. Their background fill is now blurred at 270x480 and scaled up instead of blurred at 1080x1920, and it looks the same. A 34.6s clip re-renders in 17s instead of 55s on an Intel MacBook Air.
 - Unit tests run on Python 3.10 and 3.12 in CI.
 
 ### Dependencies

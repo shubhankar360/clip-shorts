@@ -5,15 +5,15 @@ from .captions import build_ass
 from .media import ffmpeg
 from .reframe import x_expr
 
+# blurred fill, blurred at quarter size then scaled up: looks like boxblur=20:5 at 1080x1920, ~9x cheaper
+BLUR_BG = "scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=6:3,scale=1080:1920"
 # {x} is the crop's left edge: centered, or an expression that follows the face track
 LAYOUTS = {
     # full frame over a blurred fill: safest for any source
-    "blur": ("[0:v]split[a][b];"
-             "[a]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:5[bg];"
+    "blur": ("[0:v]split[a][b];[a]" + BLUR_BG + "[bg];"
              "[b]scale=1080:-2[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2"),
     # tighter crop over blur, following the face when one is found: bigger faces for podcasts/interviews
-    "zoom": ("[0:v]split[a][b];"
-             "[a]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:5[bg];"
+    "zoom": ("[0:v]split[a][b];[a]" + BLUR_BG + "[bg];"
              "[b]scale=1440:-2,crop=1080:ih:{x}:0[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2"),
     # full-bleed center crop: single speaker centered in frame
     "crop": "[0:v]scale=-2:1920,crop=1080:1920",
