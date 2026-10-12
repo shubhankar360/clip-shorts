@@ -22,7 +22,7 @@ PY="$(pick_python)" || { log "Python 3.10+ is required: https://www.python.org/d
 [ -x "$VENV/bin/python" ] || { log "creating virtualenv ($PY) at $VENV"; "$PY" -m venv "$VENV"; }
 log "installing dependencies (first run downloads ~300MB, takes a few minutes)…"
 "$VENV/bin/python" -m pip install -q --upgrade pip 1>&2
-"$VENV/bin/python" -m pip install -q -r "$ROOT/requirements.txt" 1>&2
+"$VENV/bin/python" -m pip install -q --prefer-binary -r "$ROOT/requirements.txt" 1>&2
 rm -f "$VENV"/.req-*
 touch "$VENV/.req-$(cksum < "$ROOT/requirements.txt" | cut -d' ' -f1)"
 mkdir -p "$STATE/bin"

@@ -1,10 +1,13 @@
 """MCP server: exposes the clipper to Claude (or any MCP client) over stdio."""
-from mcp.server.fastmcp import FastMCP
+try:  # mcp >= 2.0
+    from mcp.server.mcpserver import MCPServer
+except ImportError:  # mcp 1.x
+    from mcp.server.fastmcp import FastMCP as MCPServer
 
 from . import doctor as _doctor
 from . import pipeline, tracker, youtube
 
-mcp = FastMCP("clipper")
+mcp = MCPServer("clipper")
 
 
 @mcp.tool()

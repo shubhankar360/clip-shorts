@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "clipper": {
-      "command": "${CLAUDE_PLUGIN_ROOT:-.}/scripts/cs",
-      "args": ["mcp"]
-    }
-  }
-}
