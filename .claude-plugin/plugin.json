@@ -1,0 +1,9 @@
+{
+  "name": "clip-shorts",
+  "version": "0.1.0",
+  "description": "Free auto-clipper: long videos → scored, karaoke-captioned 9:16 Shorts, virality ranking, YouTube scheduling, and campaign earnings tracking. Skills + MCP server.",
+  "author": { "name": "Shubhankar Gupta" },
+  "repository": "https://github.com/shubhankar360/clip-shorts",
+  "license": "MIT",
+  "keywords": ["youtube", "shorts", "clipping", "video", "whisper", "ffmpeg", "mcp"]
+}

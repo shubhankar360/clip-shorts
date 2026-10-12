@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# `cs` launcher: auto-installs deps on first run (or when requirements change), then runs the CLI.
+set -euo pipefail
+SELF="$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "${BASH_SOURCE[0]}")"
+ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+VENV="${CLIP_SHORTS_STATE:-$HOME/.clip-shorts}/venv"
+STAMP="$VENV/.req-$(cksum < "$ROOT/requirements.txt" | cut -d' ' -f1)"
+[ -f "$STAMP" ] || "$ROOT/scripts/setup.sh"
+PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" exec "$VENV/bin/python" -m clipshorts "$@"

@@ -1,0 +1,11 @@
+{
+  "name": "clip-shorts",
+  "owner": { "name": "Shubhankar Gupta" },
+  "plugins": [
+    {
+      "name": "clip-shorts",
+      "source": "./",
+      "description": "Auto-clip long videos into scored, captioned YouTube Shorts with an MCP server and /clip-shorts + /clip-stats skills."
+    }
+  ]
+}

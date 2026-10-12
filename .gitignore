@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+clips/
+secrets/
+client_secret*.json
+token.json
+tracker.csv
+*.mp4
+*.wav
+.DS_Store
