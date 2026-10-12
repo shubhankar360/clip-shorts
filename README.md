@@ -93,7 +93,9 @@ See [ROADMAP.md](ROADMAP.md) for the 30-day plan to your first payout.
 
 ## Develop
 ```bash
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v          # unit tests: fast, stdlib only
+~/.clip-shorts/venv/bin/python tests/e2e.py        # end-to-end: real whisper + ffmpeg + OpenCV, a few minutes
 ```
+The end-to-end test synthesizes about 60 seconds of speech (`espeak-ng` on Linux, `say` on macOS) over an ffmpeg test pattern. It runs `python -m clipshorts clip` with whisper-tiny and checks that the Shorts come out at 1080x1920. It also tracks a drawn face through a camera cut and runs an MCP stdio handshake. Pass `--keep DIR` to look at the output afterwards. CI runs both tests on every push.
 
 MIT licensed.
