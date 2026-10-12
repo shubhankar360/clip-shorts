@@ -29,15 +29,17 @@ Choose the layout:
 - `crop` for one speaker centered in the frame
 - `blur` (the default) for anything else
 
-Pass more than one URL to batch them. If a clip's `face_track` in the report is `null`, no face was found and it fell back to a centered crop. Re-render it with `--layout blur` if that cuts someone off.
+Pass more than one URL to batch them. Add `--rerank llm` only if the user asks for it and has `ANTHROPIC_API_KEY` set. It sends transcripts to the Anthropic API, so it isn't offline. If a clip's `face_track` in the report is `null`, no face was found and it fell back to a centered crop. Re-render it with `--layout blur` if that cuts someone off.
 
 ## 3. Rank and present
-Show one compact table sorted by `virality_score` with these columns: **# · score · verdict · length · opening line (about 10 words) · file**. Leave out SKIP clips.
-Under the table, write **one sentence on why the #1 clip should work**, using the `breakdown` (hook, emotion, pace, energy, payoff, length).
+Show one compact table sorted by `virality_score` (or in clip `id` order when the report's `rerank` is `llm`, since Claude already ranked them) with these columns: **# · score · verdict · length · opening line (about 10 words) · file**. Leave out SKIP clips.
+Under the table, write **one sentence on why the #1 clip should work**, using the `breakdown` (hook, emotion, pace, energy, payoff, length, standalone).
 
 If the Higgsfield connector is available, run its `virality_predictor` on the top 3 clips for a second opinion. Flag any clip where the two scores differ by more than 20 points.
 
 ## 4. Polish (this step does most of the work for views)
+Each clip in the report has `suggested_hook` and `suggested_title`. They come from the opening line, or from Claude when the report says `"rerank": "llm"` (then `llm_why` explains the pick). Start from them: keep what works and tighten the rest against the rules below. Don't write from scratch unless the suggestion is weak.
+
 For each clip marked POST or POST FIRST, write:
 - **Hook banner:** 6 words or fewer, a curiosity gap, no clickbait lies. Apply it with
   `"$CS" rerender <folder> <id> --hook "HE LOST EVERYTHING IN 1 DAY"`

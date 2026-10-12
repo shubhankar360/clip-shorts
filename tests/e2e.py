@@ -153,8 +153,13 @@ def main():
         assert clips, f"no clips in report ({report['candidates_considered']} candidates)"
         for c in clips:
             size = video_size(c["file"])
-            print(f"    clip {c['id']}: {c['duration']}s score {c['virality_score']} {size} {c['opening_line']!r}")
+            print(f"    clip {c['id']}: {c['duration']}s score {c['virality_score']} {size} "
+                  f"hook {c['suggested_hook']!r} title {c['suggested_title']!r}")
             assert Path(c["file"]).exists() and size == (1080, 1920), c["file"]
+            assert len(c["suggested_hook"].split()) <= 6 and c["suggested_hook"], c
+            assert c["suggested_title"].endswith("#shorts") and len(c["suggested_title"]) <= 60, c
+            assert "standalone" in c["breakdown"], c
+        assert report["rerank"] == "off", report["rerank"]
 
         print("4/5 face tracking + face layout")
         from clipshorts.reframe import track

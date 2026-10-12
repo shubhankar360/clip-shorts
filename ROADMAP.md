@@ -52,11 +52,12 @@ DAILY LOOP (about 2–3 hours/day)
 | Signal | Points | What it checks |
 |---|---|---|
 | Hook in first 3s | 25 | Question, number, "nobody", "secret", "never", "why", a strong claim |
-| Emotional intensity | 20 | Density of high-arousal words (crazy, insane, money, fired, love, hate…) |
+| Emotional intensity | 15 | Density of high-arousal words (crazy, insane, money, fired, love, hate…) |
 | Speech pace | 15 | 2.3–3.6 words/sec is the sweet spot |
 | Energy peaks | 15 | Loudness spikes (laughs, yelling, reactions) compared with the average |
 | Clean payoff | 10 | Ends at the end of a sentence, not mid-thought |
-| Length sweet spot | 15 | 25–45s gets full points |
+| Length sweet spot | 10 | 25–45s gets full points |
+| Standalone | 10 | Starts after a pause (a topic shift), not on "he", "that", or "this one" that points back at something earlier |
 
 **Rule of thumb:** below 60, delete. 60–70, post only if you're short on clips. 70 or higher, post. 85 or higher, post it first at your best time slot.
 

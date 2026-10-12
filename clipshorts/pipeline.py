@@ -6,12 +6,14 @@ from . import config
 from .media import fetch, loudness
 from .reframe import track
 from .render import FACE_LAYOUTS, render
-from .score import candidates, pick, verdict, words_between
+from .rerank import choose
+from .score import candidates, verdict, words_between
 from .transcribe import transcribe
 
 
 def make_clips(src: str, n: int = 8, min_score: float = 60, layout: str = "blur",
-               model: str = "small", min_len: int = 20, max_len: int = 58, log=print) -> dict:
+               model: str = "small", min_len: int = 20, max_len: int = 58, rerank: str = "off", log=print) -> dict:
+    """rerank="llm" lets Claude pick the final clips and write hooks/titles (needs ANTHROPIC_API_KEY)."""
     config.ensure()
     log("1/4 fetching source…")
     video, workdir, meta = fetch(src, config.CLIPS)
@@ -22,7 +24,7 @@ def make_clips(src: str, n: int = 8, min_score: float = 60, layout: str = "blur"
     log("3/4 scoring windows…")
     rms = loudness(video, workdir)
     ranked = candidates(words, sents, rms, min_len, max_len)
-    chosen = [c for c in pick(ranked, n) if c["score"] >= min_score]
+    chosen, reranked = choose(ranked, n, min_score, rerank, meta, log)
 
     clips = []
     for i, c in enumerate(chosen, 1):
@@ -32,11 +34,14 @@ def make_clips(src: str, n: int = 8, min_score: float = 60, layout: str = "blur"
                     duration=round(c["end"] - c["start"], 1), virality_score=c["score"],
                     verdict=verdict(c["score"]), breakdown=c["parts"],
                     opening_line=c["words"] and " ".join(w["text"] for w in c["words"][:14]),
-                    transcript=c["text"], hook="")
+                    transcript=c["text"], hook="", suggested_hook=c["suggested_hook"],
+                    suggested_title=c["suggested_title"])
+        if "llm_why" in c:
+            clip["llm_why"] = c["llm_why"]
         render(video, c["words"], c["start"], c["end"], out, layout, keys=_face_track(video, clip, layout, log))
         clips.append(clip)
     report = dict(meta, folder=workdir.name, path=str(workdir), source=str(video), model=model, layout=layout,
-                  candidates_considered=len(ranked), clips=clips)
+                  **reranked, candidates_considered=len(ranked), clips=clips)
     (workdir / "report.json").write_text(json.dumps(report, indent=2))
     return report
 

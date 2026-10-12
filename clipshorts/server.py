@@ -12,13 +12,16 @@ mcp = MCPServer("clipper")
 
 @mcp.tool()
 def make_clips(source: str, n: int = 8, min_score: float = 60, layout: str = "blur",
-               whisper_model: str = "small") -> dict:
+               whisper_model: str = "small", rerank: str = "off") -> dict:
     """Clip a long video (URL or local path) the user has permission to use into up to n
     captioned 9:16 Shorts. Returns a report with virality_score (0-100) and verdict per clip.
     layout: blur (safe default) | zoom (podcasts; follows the face) | crop (single centered speaker)
     | face (full-bleed crop that follows the speaker's face, centered if none is found).
+    Each clip has suggested_hook and suggested_title (from its opening line). rerank: off (default,
+    free and offline) | llm (Claude picks the final clips and writes the hooks and titles; needs
+    ANTHROPIC_API_KEY and the anthropic package, otherwise falls back to off).
     Long videos take minutes; transcripts are cached so re-runs are fast."""
-    return pipeline.make_clips(source, n, min_score, layout, whisper_model, log=lambda *_: None)
+    return pipeline.make_clips(source, n, min_score, layout, whisper_model, rerank=rerank, log=lambda *_: None)
 
 
 @mcp.tool()

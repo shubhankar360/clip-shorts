@@ -23,6 +23,8 @@ def main(argv=None):
     p.add_argument("--model", default="small", help="whisper size: tiny/base/small/medium")
     p.add_argument("--min-len", type=int, default=20)
     p.add_argument("--max-len", type=int, default=58)
+    p.add_argument("--rerank", choices=["off", "llm"], default="off",
+                   help="llm: Claude picks the final clips + writes hooks/titles (needs ANTHROPIC_API_KEY)")
 
     p = sub.add_parser("rerender", help="re-render one clip with a hook banner / new layout")
     p.add_argument("folder")
@@ -57,7 +59,8 @@ def main(argv=None):
 
     if a.cmd == "clip":
         from .pipeline import make_clips
-        _out([make_clips(s, a.n, a.min_score, a.layout, a.model, a.min_len, a.max_len, log=log) for s in a.src])
+        _out([make_clips(s, a.n, a.min_score, a.layout, a.model, a.min_len, a.max_len, a.rerank, log=log)
+              for s in a.src])
     elif a.cmd == "rerender":
         from .pipeline import rerender
         _out(rerender(a.folder, a.clip_id, a.hook, a.layout))
