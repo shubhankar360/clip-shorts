@@ -1,6 +1,7 @@
 yt-dlp>=2025.1.1
 faster-whisper>=1.0
 numpy
+opencv-python-headless>=4.8,<5  # 5.x drops the bundled Haar cascades
 imageio-ffmpeg>=0.5
 mcp[cli]>=1.2
 google-api-python-client

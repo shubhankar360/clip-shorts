@@ -24,10 +24,12 @@ Only clip sources the user is allowed to use: a clipping campaign (Whop Content 
 ```
 Run this in the background for videos over 20 minutes. Progress messages go to stderr and the final JSON report goes to stdout.
 Choose the layout:
-- `zoom` for podcasts with two people in frame
+- `face` for one speaker who isn't centered or moves around (the crop follows their face)
+- `zoom` for podcasts with two people in frame (the tighter crop also leans toward the face)
 - `crop` for one speaker centered in the frame
 - `blur` (the default) for anything else
-Pass more than one URL to batch them.
+
+Pass more than one URL to batch them. If a clip's `face_track` in the report is `null`, no face was found and it fell back to a centered crop. Re-render it with `--layout blur` if that cuts someone off.
 
 ## 3. Rank and present
 Show one compact table sorted by `virality_score` with these columns: **# · score · verdict · length · opening line (about 10 words) · file**. Leave out SKIP clips.

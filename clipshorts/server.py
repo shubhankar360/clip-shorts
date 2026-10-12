@@ -15,14 +15,16 @@ def make_clips(source: str, n: int = 8, min_score: float = 60, layout: str = "bl
                whisper_model: str = "small") -> dict:
     """Clip a long video (URL or local path) the user has permission to use into up to n
     captioned 9:16 Shorts. Returns a report with virality_score (0-100) and verdict per clip.
-    layout: blur (safe default) | zoom (podcasts) | crop (single centered speaker).
+    layout: blur (safe default) | zoom (podcasts; follows the face) | crop (single centered speaker)
+    | face (full-bleed crop that follows the speaker's face, centered if none is found).
     Long videos take minutes; transcripts are cached so re-runs are fast."""
     return pipeline.make_clips(source, n, min_score, layout, whisper_model, log=lambda *_: None)
 
 
 @mcp.tool()
 def rerender_clip(folder: str, clip_id: int, hook: str = "", layout: str | None = None) -> dict:
-    """Re-render one clip from a report, e.g. adding a hook banner at the top (keep it <= 6 words)."""
+    """Re-render one clip from a report, e.g. adding a hook banner at the top (keep it <= 6 words)
+    or switching layout (blur | zoom | crop | face)."""
     return pipeline.rerender(folder, clip_id, hook, layout)
 
 

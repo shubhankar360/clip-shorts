@@ -5,7 +5,8 @@ Give it a long video and get back ranked, karaoke-captioned 9:16 Shorts. Each cl
 
 - 🆓 **No paid APIs.** It uses yt-dlp, faster-whisper (local transcription), and a bundled ffmpeg, so there's no Homebrew dependency.
 - 🧠 **Virality score from 0 to 100** based on the hook in the first 3 seconds, emotional words, speaking pace, loudness spikes, whether the clip ends on a payoff, and length
-- 🎬 **Three layouts:** `blur`, `zoom` (good for podcasts), and `crop`. Captions highlight each word as it's spoken, and there's an optional hook banner.
+- 🎬 **Four layouts:** `blur`, `zoom` (good for podcasts), `crop`, and `face`, a full-bleed crop that follows the speaker. Captions highlight each word as it's spoken, and there's an optional hook banner.
+- 🙂 **Face tracking:** `face` and `zoom` find the speaker with OpenCV's bundled face detector and keep them in frame. The crop holds steady through small movements and cuts cleanly when the camera switches. It falls back to a centered crop when no face is found.
 - 📈 **Campaign tracker:** views and estimated earnings (views ÷ 1000 × CPM) per campaign
 - 🤖 **Two Claude Code skills** (`/clip-shorts` and `/clip-stats`) plus an **MCP server** called `clipper`
 
@@ -38,7 +39,8 @@ Requirements: Python 3.10+ and about 1 GB of free disk space for dependencies an
 ## CLI
 ```bash
 cs clip <url-or-file> [more urls] --n 8 --layout zoom      # → ~/ClipShorts/clips/<video>/clip_XX.mp4 + report.json
-cs rerender <folder> 2 --hook "HE LOST EVERYTHING"          # add a hook banner / change layout
+cs rerender <folder> 2 --hook "HE LOST EVERYTHING"          # add a hook banner
+cs rerender <folder> 2 --layout face                        # re-crop to follow the speaker's face
 cs slots --n 4                                              # next 9/13/18/21h posting slots (UTC)
 cs upload clip_02.mp4 --title "..." --publish-at 2026-10-13T13:00:00Z --campaign "Whop X"
 cs log https://youtube.com/shorts/abc 12400 --campaign "Whop X"

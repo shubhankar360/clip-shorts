@@ -2,6 +2,7 @@ import datetime as dt
 import unittest
 
 from clipshorts.captions import ass_time, build_ass, chunk_words
+from clipshorts.reframe import keyframes, pick_face, smooth, x_expr
 from clipshorts.score import candidates, pick, verdict
 from clipshorts.youtube import next_slots
 
@@ -55,6 +56,40 @@ class CaptionTests(unittest.TestCase):
         ass = build_ass(fake(SENTS[:1]), 0, 4, hook="{bad} hook")
         self.assertIn("Hook,,0,0,0,,BAD HOOK", ass)
         self.assertIn(r"{\c&H00FFFF&}WHY{\c&HFFFFFF&}", ass)
+
+
+def crop_x(expr, t, iw=1000, ow=300):
+    """Evaluate an ffmpeg crop expression in Python (both if() branches are plain arithmetic)."""
+    env = dict(t=t, iw=iw, ow=ow, between=lambda x, a, b: a <= x <= b,
+               clip=lambda x, lo, hi: min(max(x, lo), hi), if_=lambda c, a, b: a if c else b)
+    return eval(expr.replace("if(", "if_("), {"__builtins__": {}}, env)
+
+
+class ReframeTests(unittest.TestCase):
+    def test_pick_largest_face_but_stay_on_a_near_equal_one(self):
+        faces = [(0, 0, 12, 12), (80, 0, 13, 13)]  # x, y, w, h in a 100px-wide frame
+        self.assertAlmostEqual(pick_face(faces, 100), 0.865)
+        self.assertAlmostEqual(pick_face(faces, 100, prev=0.07), 0.06)
+        self.assertIsNone(pick_face((), 100))
+
+    def test_smooth_fills_gaps_and_drops_outliers(self):
+        samples = [(0, None), (0.33, 0.3), (0.67, None), (1, 0.31), (1.33, 0.9), (1.67, 0.3), (2, 0.3)]
+        self.assertEqual([c for _, c in smooth(samples)], [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3])
+        self.assertEqual(smooth([(t, None) for t in range(9)] + [(9, 0.5)]), [])  # 1 face in 10 frames
+
+    def test_keyframes_hold_pan_and_cut(self):
+        track = [(i / 3, c) for i, c in enumerate([0.5, 0.52, 0.48, 0.5] * 2 + [0.6] * 6 + [0.1] * 3)]
+        self.assertEqual(keyframes(track), [(0.0, 0.5), (2.167, 0.5), (2.667, 0.6),
+                                            (4.46, 0.6), (4.5, 0.1)])
+        self.assertEqual(keyframes([(0, 0.4), (1, 0.42)]), [(0.0, 0.4)])
+
+    def test_crop_expression_follows_keys_and_stays_in_frame(self):
+        expr = x_expr([(0.0, 0.2), (1.0, 0.2), (2.0, 0.8)])
+        self.assertIn("if(between(t,", expr)
+        for t, x in ((0.5, 50), (1.5, 350), (2.0, 650), (9.0, 650)):
+            self.assertAlmostEqual(crop_x(expr, t), x)
+        self.assertEqual(crop_x(x_expr([(0.0, 0.0)]), 3), 0)
+        self.assertEqual(crop_x(x_expr([(0.0, 1.0)]), 3), 700)
 
 
 class SlotTests(unittest.TestCase):

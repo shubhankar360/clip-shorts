@@ -3,6 +3,8 @@ import argparse
 import json
 import sys
 
+LAYOUTS = ["blur", "zoom", "crop", "face"]
+
 
 def _out(obj):
     print(json.dumps(obj, indent=2))
@@ -16,7 +18,8 @@ def main(argv=None):
     p.add_argument("src", nargs="+")
     p.add_argument("--n", type=int, default=8)
     p.add_argument("--min-score", type=float, default=60)
-    p.add_argument("--layout", choices=["blur", "zoom", "crop"], default="blur")
+    p.add_argument("--layout", choices=LAYOUTS, default="blur",
+                   help="blur (default) | zoom (podcasts) | crop (centered) | face (follows the speaker)")
     p.add_argument("--model", default="small", help="whisper size: tiny/base/small/medium")
     p.add_argument("--min-len", type=int, default=20)
     p.add_argument("--max-len", type=int, default=58)
@@ -25,7 +28,7 @@ def main(argv=None):
     p.add_argument("folder")
     p.add_argument("clip_id", type=int)
     p.add_argument("--hook", default="")
-    p.add_argument("--layout", choices=["blur", "zoom", "crop"])
+    p.add_argument("--layout", choices=LAYOUTS)
 
     sub.add_parser("reports", help="list all clip reports")
 
