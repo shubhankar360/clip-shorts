@@ -2,7 +2,7 @@
 face tracking on a drawn face and an MCP stdio handshake. Needs requirements.txt installed and
 espeak-ng (Linux) or `say` (macOS). Downloads the whisper model on first run.
 
-    python tests/e2e.py [--model tiny] [--keep DIR]
+    python tests/e2e.py [--model tiny] [--keep DIR] [--screenshot docs/screenshot.png]
 """
 import argparse
 import json
@@ -33,6 +33,7 @@ SCRIPT = [
     "Here is the crazy part. The biggest wins of my career came from the worst failures. "
     "Every single one of them. Remember that the next time you fail.",
 ]
+HOOK = "I LOST A MILLION IN 1 DAY"
 
 
 def say(text: str, out: Path) -> None:
@@ -124,6 +125,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--model", default="tiny")
     ap.add_argument("--keep", help="work in this folder and keep it (default: a temp folder, deleted)")
+    ap.add_argument("--screenshot", help="also save a 540px-wide frame of clip 1 with a hook banner here")
     a = ap.parse_args()
     tmp = Path(a.keep or tempfile.mkdtemp(prefix="clipshorts-e2e-")).resolve()
     tmp.mkdir(parents=True, exist_ok=True)
@@ -168,6 +170,18 @@ def main():
         print("5/5 MCP stdio handshake")
         assert "make_clips" in mcp_tools(env)
 
+        if a.screenshot:
+            subprocess.run(cs + ["rerender", report["folder"], "1", "--hook", HOOK],
+                           cwd=ROOT, env=env, check=True, stdout=subprocess.DEVNULL)
+            # grab a frame mid-word (~3s in) so a caption is on screen with one word highlighted
+            words = json.loads((Path(report["path"]) / f"transcript-{a.model}.json").read_text())["words"]
+            w = next(w for w in words if w["start"] >= clips[0]["start"] + 3)
+            shot = Path(a.screenshot).resolve()
+            ffmpeg("-ss", f"{(w['start'] + w['end']) / 2 - clips[0]['start']:.2f}", "-i", clips[0]["file"],
+                   "-frames:v", 1, "-vf",
+                   "scale=540:-2:flags=lanczos,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse",
+                   "-update", 1, shot)
+            print(f"    screenshot -> {shot} ({shot.stat().st_size // 1024} KB)")
         print("e2e OK")
     finally:
         if not a.keep:

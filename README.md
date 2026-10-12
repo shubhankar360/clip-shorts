@@ -1,5 +1,9 @@
 # clip-shorts ✂️
 
+[![test](https://github.com/shubhankar360/clip-shorts/actions/workflows/test.yml/badge.svg)](https://github.com/shubhankar360/clip-shorts/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+
 **Free, local auto-clipper for YouTube Shorts, built for Claude Code.**
 Give it a long video and get back ranked, karaoke-captioned 9:16 Shorts. Each clip has a virality score, a hook banner, a title, and can be scheduled to YouTube. View tracking estimates your earnings per clipping campaign.
 
@@ -9,6 +13,11 @@ Give it a long video and get back ranked, karaoke-captioned 9:16 Shorts. Each cl
 - 🙂 **Face tracking:** `face` and `zoom` find the speaker with OpenCV's bundled face detector and keep them in frame. The crop holds steady through small movements and cuts cleanly when the camera switches. It falls back to a centered crop when no face is found.
 - 📈 **Campaign tracker:** views and estimated earnings (views ÷ 1000 × CPM) per campaign
 - 🤖 **Two Claude Code skills** (`/clip-shorts` and `/clip-stats`) plus an **MCP server** called `clipper`
+
+<p align="center">
+  <img src="docs/screenshot.png" width="270" alt="A rendered 9:16 Short: a hook banner at the top and karaoke captions near the bottom, with the spoken word highlighted in yellow">
+  <br><sub>A frame from a clip of the synthetic test video: hook banner on top, with the spoken word highlighted in the captions.</sub>
+</p>
 
 > ⚖️ Only clip content you have permission to use: clipping campaigns, your own videos, or licensed content. Reposting other people's videos without changes breaks copyright law and YouTube's reused-content policy.
 
@@ -96,6 +105,8 @@ See [ROADMAP.md](ROADMAP.md) for the 30-day plan to your first payout.
 python3 -m unittest discover -s tests -v          # unit tests: fast, stdlib only
 ~/.clip-shorts/venv/bin/python tests/e2e.py        # end-to-end: real whisper + ffmpeg + OpenCV, a few minutes
 ```
-The end-to-end test synthesizes about 60 seconds of speech (`espeak-ng` on Linux, `say` on macOS) over an ffmpeg test pattern. It runs `python -m clipshorts clip` with whisper-tiny and checks that the Shorts come out at 1080x1920. It also tracks a drawn face through a camera cut and runs an MCP stdio handshake. Pass `--keep DIR` to look at the output afterwards. CI runs both tests on every push.
+The end-to-end test synthesizes about 60 seconds of speech (`espeak-ng` on Linux, `say` on macOS) over an ffmpeg test pattern. It runs `python -m clipshorts clip` with whisper-tiny and checks that the Shorts come out at 1080x1920. It also tracks a drawn face through a camera cut and runs an MCP stdio handshake. Pass `--keep DIR` to look at the output afterwards. CI runs both tests on every push. `--screenshot docs/screenshot.png` regenerates the README image.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the house style and [CHANGELOG.md](CHANGELOG.md) for what changed.
 
 MIT licensed.
