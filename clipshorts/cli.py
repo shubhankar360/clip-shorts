@@ -3,6 +3,8 @@ import argparse
 import json
 import sys
 
+LAYOUTS = ["blur", "zoom", "crop", "face"]
+
 
 def _out(obj):
     print(json.dumps(obj, indent=2))
@@ -16,16 +18,19 @@ def main(argv=None):
     p.add_argument("src", nargs="+")
     p.add_argument("--n", type=int, default=8)
     p.add_argument("--min-score", type=float, default=60)
-    p.add_argument("--layout", choices=["blur", "zoom", "crop"], default="blur")
+    p.add_argument("--layout", choices=LAYOUTS, default="blur",
+                   help="blur (default) | zoom (podcasts) | crop (centered) | face (follows the speaker)")
     p.add_argument("--model", default="small", help="whisper size: tiny/base/small/medium")
     p.add_argument("--min-len", type=int, default=20)
     p.add_argument("--max-len", type=int, default=58)
+    p.add_argument("--rerank", choices=["off", "llm"], default="off",
+                   help="llm: Claude picks the final clips + writes hooks/titles (needs ANTHROPIC_API_KEY)")
 
     p = sub.add_parser("rerender", help="re-render one clip with a hook banner / new layout")
     p.add_argument("folder")
     p.add_argument("clip_id", type=int)
     p.add_argument("--hook", default="")
-    p.add_argument("--layout", choices=["blur", "zoom", "crop"])
+    p.add_argument("--layout", choices=LAYOUTS)
 
     sub.add_parser("reports", help="list all clip reports")
 
@@ -54,7 +59,8 @@ def main(argv=None):
 
     if a.cmd == "clip":
         from .pipeline import make_clips
-        _out([make_clips(s, a.n, a.min_score, a.layout, a.model, a.min_len, a.max_len, log=log) for s in a.src])
+        _out([make_clips(s, a.n, a.min_score, a.layout, a.model, a.min_len, a.max_len, a.rerank, log=log)
+              for s in a.src])
     elif a.cmd == "rerender":
         from .pipeline import rerender
         _out(rerender(a.folder, a.clip_id, a.hook, a.layout))

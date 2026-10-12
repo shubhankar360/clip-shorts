@@ -28,6 +28,18 @@ def ffmpeg(*args, cwd=None) -> None:
                    check=True, cwd=cwd)
 
 
+def video_size(path) -> tuple:
+    """(width, height) of the first video stream as displayed, i.e. with phone rotation applied."""
+    err = subprocess.run([ffmpeg_exe(), "-hide_banner", "-i", str(path)],
+                         capture_output=True, text=True, errors="replace").stderr
+    m = re.search(r"Video:.*?\b(\d{2,5})x(\d{2,5})\b", err)
+    if not m:
+        raise RuntimeError(f"No video stream found in {path}")
+    rot = re.search(r"(?:rotation of|rotate\s*:)\s*(-?[\d.]+)", err)
+    w, h = int(m[1]), int(m[2])
+    return (h, w) if rot and round(abs(float(rot[1]))) % 180 == 90 else (w, h)
+
+
 def slugify(text: str, limit: int = 60) -> str:
     return re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-")[:limit].strip("-") or "video"
 
