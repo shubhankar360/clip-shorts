@@ -1,13 +1,23 @@
 # clip-shorts ✂️
 
+[![test](https://github.com/shubhankar360/clip-shorts/actions/workflows/test.yml/badge.svg)](https://github.com/shubhankar360/clip-shorts/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+
 **Free, local auto-clipper for YouTube Shorts, built for Claude Code.**
 Give it a long video and get back ranked, karaoke-captioned 9:16 Shorts. Each clip has a virality score, a hook banner, a title, and can be scheduled to YouTube. View tracking estimates your earnings per clipping campaign.
 
 - 🆓 **No paid APIs.** It uses yt-dlp, faster-whisper (local transcription), and a bundled ffmpeg, so there's no Homebrew dependency.
-- 🧠 **Virality score from 0 to 100** based on the hook in the first 3 seconds, emotional words, speaking pace, loudness spikes, whether the clip ends on a payoff, and length
-- 🎬 **Three layouts:** `blur`, `zoom` (good for podcasts), and `crop`. Captions highlight each word as it's spoken, and there's an optional hook banner.
+- 🧠 **Virality score from 0 to 100** based on the hook in the first 3 seconds, emotional words, speaking pace, loudness spikes, whether the clip ends on a payoff, length, and whether it makes sense on its own. Each clip also gets a suggested hook banner and title.
+- 🎬 **Four layouts:** `blur`, `zoom` (good for podcasts), `crop`, and `face`, a full-bleed crop that follows the speaker. Captions highlight each word as it's spoken, and there's an optional hook banner.
+- 🙂 **Face tracking:** `face` and `zoom` find the speaker with OpenCV's bundled face detector and keep them in frame. The crop holds steady through small movements and cuts cleanly when the camera switches. It falls back to a centered crop when no face is found.
 - 📈 **Campaign tracker:** views and estimated earnings (views ÷ 1000 × CPM) per campaign
 - 🤖 **Two Claude Code skills** (`/clip-shorts` and `/clip-stats`) plus an **MCP server** called `clipper`
+
+<p align="center">
+  <img src="docs/screenshot.png" width="270" alt="A rendered 9:16 Short: a hook banner at the top and karaoke captions near the bottom, with the spoken word highlighted in yellow">
+  <br><sub>A frame from a clip of the synthetic test video: hook banner on top, with the spoken word highlighted in the captions.</sub>
+</p>
 
 > ⚖️ Only clip content you have permission to use: clipping campaigns, your own videos, or licensed content. Reposting other people's videos without changes breaks copyright law and YouTube's reused-content policy.
 
@@ -38,7 +48,9 @@ Requirements: Python 3.10+ and about 1 GB of free disk space for dependencies an
 ## CLI
 ```bash
 cs clip <url-or-file> [more urls] --n 8 --layout zoom      # → ~/ClipShorts/clips/<video>/clip_XX.mp4 + report.json
-cs rerender <folder> 2 --hook "HE LOST EVERYTHING"          # add a hook banner / change layout
+cs clip <url-or-file> --rerank llm                          # optional: Claude picks the clips and writes hooks/titles
+cs rerender <folder> 2 --hook "HE LOST EVERYTHING"          # add a hook banner
+cs rerender <folder> 2 --layout face                        # re-crop to follow the speaker's face
 cs slots --n 4                                              # next 9/13/18/21h posting slots (UTC)
 cs upload clip_02.mp4 --title "..." --publish-at 2026-10-13T13:00:00Z --campaign "Whop X"
 cs log https://youtube.com/shorts/abc 12400 --campaign "Whop X"
@@ -79,19 +91,34 @@ Everything is stored in `~/ClipShorts/`. You can change this with `CLIP_SHORTS_H
 | Signal | Max points | What it measures |
 |---|---|---|
 | Hook | 25 | Hook words, a number in the first 3 seconds, or a question in the first 5 seconds. Starting with "and", "so", "um", etc. costs points. |
-| Emotion | 20 | How often high-arousal words appear |
+| Emotion | 15 | How often high-arousal words appear |
 | Pace | 15 | 2.3–3.6 words/sec gets full points |
 | Energy | 15 | The loudest moment compared with the video's average loudness |
 | Payoff | 10 | The clip ends on a complete sentence |
-| Length | 15 | 25–45 seconds gets full points |
+| Length | 10 | 25–45 seconds gets full points |
+| Standalone | 10 | Makes sense without the rest of the video. Starting right after a pause of more than 0.8 seconds (a topic shift) earns points. Opening on "he", "she", "they", "it", "that", or "this one" costs points. |
 
 Verdicts: **85 or higher = POST FIRST**, 70 or higher = POST, 60 or higher = MAYBE, below 60 = SKIP. You can tune the word lists in `clipshorts/score.py` to match what's working for you. `/clip-stats` will suggest changes.
+
+Each clip in `report.json` has a `suggested_hook` (6 words or fewer) and a `suggested_title` (60 characters or fewer, ending in `#shorts`), taken from its opening line. They're a starting point to edit, not a final answer.
+
+### Optional: LLM re-rank (`--rerank llm`)
+Off by default, so clipping stays free and offline. With `--rerank llm` (or `rerank="llm"` on the `make_clips` MCP tool) and `ANTHROPIC_API_KEY` set, the top 3×N heuristic candidates' transcripts go to Claude (`claude-sonnet-5-5`) through the Anthropic API. Claude picks the N most self-contained, viral moments and writes `suggested_hook` and `suggested_title` for each, plus a one-line `llm_why`. It costs a few cents per video. Install the SDK in the venv first, since it isn't a default dependency:
+```bash
+~/.clip-shorts/venv/bin/pip install anthropic
+export ANTHROPIC_API_KEY=...        # never paste it into chat
+```
+If the key or package is missing, or the API call fails, clipping falls back to the heuristic order. In that case `report.json` has `"rerank": "off"` and a `rerank_error` explaining why. Inside Claude Code you usually don't need this, because the `/clip-shorts` skill already has Claude review the clips.
 
 See [ROADMAP.md](ROADMAP.md) for the 30-day plan to your first payout.
 
 ## Develop
 ```bash
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v          # unit tests: fast, stdlib only
+~/.clip-shorts/venv/bin/python tests/e2e.py        # end-to-end: real whisper + ffmpeg + OpenCV, a few minutes
 ```
+The end-to-end test synthesizes about 60 seconds of speech (`espeak-ng` on Linux, `say` on macOS) over an ffmpeg test pattern. It runs `python -m clipshorts clip` with whisper-tiny and checks that the Shorts come out at 1080x1920. It also tracks a drawn face through a camera cut and runs an MCP stdio handshake. Pass `--keep DIR` to look at the output afterwards. CI runs both tests on every push. `--screenshot docs/screenshot.png` regenerates the README image.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the house style and [CHANGELOG.md](CHANGELOG.md) for what changed.
 
 MIT licensed.
